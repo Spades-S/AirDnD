@@ -1,0 +1,9 @@
+$main-nav: rgb(213, 212, 214);
+$sub-nav: rgb(236, 236, 236);
+
+@mixin flex($flow: row nowrap, $justify: center, $align: center) {
+    display: flex;
+    flex-flow: $flow;
+    justify-content: $justify;
+    align-items: $align;
+}

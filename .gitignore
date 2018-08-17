@@ -1,0 +1,8 @@
+**/node_modules/*
+**/package-lock.json
+**/.DS_Store
+**/.idea/*
+**/yarn.lock
+**/Dist/*
+**/static/*
+**/logs/*

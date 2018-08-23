@@ -1,6 +1,5 @@
 // Created by Spades<spadesge@gmail.com> on 18/05/23
 import Vue from 'vue'
-import axios from 'axios'
 import Router from 'vue-router'
 import RentDetail from '../components/RentDetail.vue'
 import SaleDetail from '../components/SaleDetail.vue'
@@ -11,12 +10,9 @@ import NewSale from '../components/NewSale.vue'
 import NewRent from '../components/NewRent.vue'
 import Login from '../components/Login.vue'
 
+import Axios from '../service/http'
 
 import Store from '../store'
-import { axiosBaseURL } from '../../config/index'
-
-axios.defaults.baseURL = axiosBaseURL
-axios.defaults.withCredentials = true
 
 Vue.use(Router)
 
@@ -74,7 +70,7 @@ router.beforeEach((to, from, next) => {
     if (to.path === '/login') {
         next()
     } else {
-        axios.get('authorize')
+        Axios.get('authorize')
             .then(() => {
                 let activeIndex = '1'
                 switch (to.path) {
@@ -103,11 +99,6 @@ router.beforeEach((to, from, next) => {
 
                 Store.dispatch('menuChange', activeIndex)
                 next()
-            })
-            .catch((err) => {
-                if (err.response.status === 401) {
-                    next('/login')
-                }
             })
     }
 })

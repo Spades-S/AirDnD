@@ -1,7 +1,7 @@
 <template>
     <div>
         <my-header></my-header>
-        <div class="container" :class="{hasEditBox: isEBActive}">
+        <div class="content-container" :class="{hasEditBox: isEBActive}">
             <div class="btn">
                 <el-row>
                     <el-button type="primary" icon="el-icon-edit" circle @click="edit"
@@ -41,7 +41,6 @@
     </div>
 </template>
 <script>
-    import axios from 'axios'
     import { mapState } from 'vuex'
 
     import Card from './__partial/Card.vue'
@@ -49,10 +48,6 @@
     import Footer from './__partial/Footer.vue'
     import GuideItemEditBox from './__partial/ServiceItemEditBox.vue'
     import Header from './__partial/Header.vue'
-
-    import { axiosBaseURL } from '../../config'
-
-    axios.defaults.baseURL = axiosBaseURL
 
     export default {
         name: 'RentDetail',
@@ -202,7 +197,7 @@
                 this.editable = false
                 const formdata = new FormData()
                 formdata.append('info', JSON.stringify(this.info))
-                axios.put('/guide', formdata)
+                this.$api.guide.update(formdata)
                     .then((res) => {
                         if (res.status === 200) {
                             alert('update successfully')
@@ -210,33 +205,21 @@
                         }
                     })
                     .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        } else {
+                        if (err.response.status !== 401) {
                             alert('update failed')
                         }
                     })
             },
             getData() {
-                axios.get('/guide')
+                this.$api.guide.fetch()
                     .then((res) => {
                         if (!((res.data instanceof Array) && res.data.length === 0)) {
                             this.info = res.data[0].info
                         }
                     })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
-                    })
-                axios.get('/services/guide')
+                this.$api.service.fetch('guide')
                     .then((res) => {
                         this.services = res.data
-                    })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
                     })
             },
             showEB(data) {
@@ -268,7 +251,7 @@
 </script>
 <style lang="scss" scoped>
     $borderColor: #dbdbdb;
-    .container {
+    .content-container {
         position: relative;
         margin: 0px auto 1rem auto;
         min-height: calc(100% - 375px);

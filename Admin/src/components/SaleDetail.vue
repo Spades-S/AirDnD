@@ -1,7 +1,7 @@
 <template>
     <div>
         <my-header></my-header>
-        <div class="container">
+        <div class="content-container">
             <div class="btn">
                 <el-row>
                     <el-button type="primary" icon="el-icon-edit" circle @click="edit"
@@ -60,26 +60,13 @@
                 </el-upload>
                 <my-div class="name" v-model="info[lang].name" :editable="editable" :key="lang+'name'"></my-div>
                 <my-div class="addr" v-model="info[lang].addr" :editable="editable" :key="lang+'addr'"></my-div>
-                <div class="attribute">
-                    <div class="key">{{struct[lang].attribute}}</div>
-                    <my-div class="value" v-model="info[lang].attribute" :editable="editable"
-                            :key="lang+'attribute'"></my-div>
-                </div>
-                <div class="transport">
-                    <div class="key">{{struct[lang].transport}}</div>
-                    <my-div class="value" v-model="info[lang].transport" :editable="editable"
-                            :key="lang+'transport'"></my-div>
-                </div>
-                <div class="around">
-                    <div class="key">{{struct[lang].around}}</div>
-                    <my-div class="value" v-model="info[lang].around" :editable="editable"
-                            :key="lang+'around'"></my-div>
-                </div>
-                <div class="estate">
-                    <div class="key">{{struct[lang].estate}}</div>
-                    <my-div class="value" v-model="info[lang].estate" :editable="editable"
-                            :key="lang+'estate'"></my-div>
-                </div>
+                <template v-for="item in itemsToShow">
+                    <div :class="item">
+                        <div class="key">{{struct[lang][item]}}</div>
+                        <my-div class="value" v-model="info[lang][item]" :editable="editable"
+                                :key="lang+item"></my-div>
+                    </div>
+                </template>
                 <div id="vedio" v-show="vedio.url"></div>
                 <el-upload
                         :disabled="!editable"
@@ -106,16 +93,10 @@
     import { mapState } from 'vuex'
     /* eslint-disable import/extensions */
     import Chimee from 'chimee'
-    import axios from 'axios'
 
     import EditableDiv from './__partial/EditableDiv.vue'
     import Footer from './__partial/Footer.vue'
     import Header from './__partial/Header.vue'
-
-    import { axiosBaseURL } from '../../config'
-
-    axios.defaults.baseURL = axiosBaseURL
-
 
     let chimee = null
     export default {
@@ -127,6 +108,7 @@
         },
         data() {
             return {
+                itemsToShow: ['attribute', 'transport', 'around', 'estate'],
                 showProgress: false,
                 percentage: 100,
                 editable: false,
@@ -252,31 +234,23 @@
             },
             del() {
                 if (window.confirm('Delete this item?')) {
-                    axios.delete(`/sales/${this.$route.params.id}`)
+                    this.$api.sale.del(this.$route.params.id)
                         .then((res) => {
                             if (res.status === 200) {
                                 alert('Delete successfully')
                                 this.$router.push('/list/1')
                             }
                         })
-                        .catch((err) => {
-                            console.log(err)
-                        })
                 }
             },
             getItemData() {
-                axios.get(`/sales/${this.$route.params.id}`)
+                this.$api.sale.fetch(this.$route.params.id)
                     .then((res) => {
                         this.cover = res.data.cover
                         this.imgs = res.data.imgs
                         this.vedio = res.data.vedio
                         this.info = res.data.info
                         chimee.load(res.data.vedio.url)
-                    })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
                     })
             },
             imgsRemove(file, fileList) {
@@ -310,22 +284,18 @@
                 }
                 this.showProgress = true
                 const self = this
-                axios.put(`/sales/${this.$route.params.id}`, formdata, {
-                    headers: {
-                        'Content-Type': 'multipart/formdata'
-                    },
-                    onUploadProgress(e) {
+                this.$api.sale.update(
+                    this.$route.params.id, formdata,
+                    (e) => {
                         self.percentage = parseInt((e.loaded / e.total) * 100, 10)
                     }
-                }).then((res) => {
+                ).then((res) => {
                     if (res.status === 200) {
                         alert('update successfully')
                         window.location.reload()
                     }
                 }).catch((err) => {
-                    if (err.response.status === 401) {
-                        this.$router.push('/login')
-                    } else {
+                    if (err.response.status !== 401) {
                         this.showProgress = false
                         alert('update failed, please try again')
                     }
@@ -342,7 +312,7 @@
 <style lang="scss" scoped>
     $borderColor: #dbdbdb;
 
-    .container {
+    .content-container {
         margin: 1rem auto;
         height: 100%;
         width: 1120px;
@@ -390,6 +360,9 @@
                 }
                 border-bottom: 1px solid $borderColor;
                 margin-bottom: 1rem;
+            }
+            .vedio-upload {
+                margin-top: 1rem;
             }
             .carousel {
                 overflow: hidden;

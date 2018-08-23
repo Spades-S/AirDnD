@@ -23,11 +23,14 @@ import {
     TabPane
 } from 'element-ui'
 
+import api from './service'
 import App from './App.vue'
 import router from './router/index'
 import store from './store/index'
 
 Vue.config.productionTip = false
+
+Vue.use(api)
 
 Vue.use(Button)
 Vue.use(Carousel)
@@ -54,3 +57,4 @@ new Vue({
     components: { App },
     template: '<App/>'
 })
+

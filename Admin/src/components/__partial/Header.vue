@@ -14,9 +14,9 @@
                         {{struct[lang].control}}<i class="el-icon-arrow-down el-icon--right"></i>
                       </span>
                 <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item command="logout">{{struct[lang].logout}}</el-dropdown-item>
-                    <el-dropdown-item command="changepsw">{{struct[lang].changepsw}}</el-dropdown-item>
-                    <el-dropdown-item command="bindmailbox">{{struct[lang].bindmailbox}}</el-dropdown-item>
+                    <template v-for="command in commands">
+                        <el-dropdown-item :command="command">{{struct[lang][command]}}</el-dropdown-item>
+                    </template>
                 </el-dropdown-menu>
             </el-dropdown>
         </div>
@@ -35,14 +35,22 @@
     import { mapState } from 'vuex'
     import Cookie from '../../utils/cookie'
 
-
     export default {
         name: 'Header',
         data() {
             return {
-                navs: ['rent', 'sale', 'guide', 'about'],
-                mailbox: 'no mailbox'
+                commands: ['logout', 'changepsw', 'bindmailbox'],
+                mailbox: 'no mailbox',
+                navs: ['rent', 'sale', 'guide', 'about']
             }
+        },
+        created() {
+            this.$api.user.fetchMB()
+                .then((res) => {
+                    if (res.data.mailbox) {
+                        this.mailbox = res.data.mailbox
+                    }
+                })
         },
         computed: {
             ...mapState({
@@ -96,6 +104,23 @@
                     default:
                         break
                 }
+            },
+            updateMailbox(data) {
+                this.$api.user.updateMB(data)
+                    .then(() => {
+                        this.mailbox = data.mailbox
+                        this.$notify({
+                            title: 'MailBox',
+                            message: 'Update successfully',
+                            type: 'success'
+                        });
+                    })
+                    .catch(() => {
+                        this.$notify.error({
+                            title: 'MailBox',
+                            message: 'Update failed'
+                        });
+                    })
             }
         }
     }

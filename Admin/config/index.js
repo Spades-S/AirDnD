@@ -7,6 +7,11 @@ function resolve(dir) {
 }
 
 module.exports = {
+    axios: {
+        baseURL: 'http://localhost:3000/api/v1',
+        withCredentials: true
+
+    },
     axiosBaseURL: 'http://localhost:3000/api/v1',
     // axiosBaseURL: '/api/v1',
     assetsRoot: resolve('../../Dist'),

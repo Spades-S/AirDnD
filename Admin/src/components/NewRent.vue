@@ -1,7 +1,7 @@
 <template>
     <div>
         <my-header></my-header>
-        <div class="container">
+        <div class="content-container">
             <div class="btn">
                 <el-row>
                     <el-button type="primary" icon="el-icon-edit" circle @click="edit"
@@ -67,30 +67,13 @@
                     <my-div class="bed item" v-model="info[lang].rentInfo.bed" :editable="editable"
                             :key="lang+'bed'"></my-div>
                 </div>
-                <div class="inner">
-                    <div class="key">{{struct[lang].inner}}</div>
-                    <my-div class="value" v-model="info[lang].attribute" :editable="editable"
-                            :key="lang+'inner'"></my-div>
-                </div>
-                <div class="transport">
-                    <div class="key">{{struct[lang].transport}}</div>
-                    <my-div class="value" v-model="info[lang].transport" :editable="editable"
-                            :key="lang+'transport'"></my-div>
-                </div>
-                <div class="around">
-                    <div class="key">{{struct[lang].around}}</div>
-                    <my-div class="value" v-model="info[lang].around" :editable="editable"
-                            :key="lang+'around'"></my-div>
-                </div>
-                <div class="facility">
-                    <div class="key">{{struct[lang].facility}}</div>
-                    <my-div class="value" v-model="info[lang].facility" :editable="editable"
-                            :key="lang+'facility'"></my-div>
-                </div>
-                <div class="notes">
-                    <div class="key">{{struct[lang].notes}}</div>
-                    <my-div class="value" v-model="info[lang].notes" :editable="editable" :key="lang+'notes'"></my-div>
-                </div>
+                <template v-for="item in itemsToShow">
+                    <div :class="item">
+                        <div class="key">{{struct[lang][item]}}</div>
+                        <my-div class="value" v-model="info[lang][item]" :editable="editable"
+                                :key="lang+item"></my-div>
+                    </div>
+                </template>
                 <div>{{struct[lang].vedio}}</div>
                 <div id="vedio" v-show="vedio.url"></div>
                 <el-upload
@@ -118,15 +101,10 @@
     import { mapState } from 'vuex'
     /* eslint-disable import/extensions */
     import Chimee from 'chimee'
-    import axios from 'axios'
 
     import EditableDiv from './__partial/EditableDiv.vue'
     import Footer from './__partial/Footer.vue'
     import Header from './__partial/Header.vue'
-
-    import { axiosBaseURL } from '../../config'
-
-    axios.defaults.baseURL = axiosBaseURL
 
     let chimee = null
     export default {
@@ -139,6 +117,7 @@
         data() {
             return {
                 editable: false,
+                itemsToShow: ['inner', 'transport', 'around', 'facility', 'notes'],
                 showProgress: false,
                 percentage: 100,
                 struct: {
@@ -183,7 +162,6 @@
                 info: {
                     zh: {
                         addr: '地址',
-                        attribute: '',
                         name: '名字',
                         intro: '简介',
                         inner: '',
@@ -201,7 +179,6 @@
                     },
                     en: {
                         addr: 'address',
-                        attribute: '',
                         name: 'name',
                         intro: 'introduction',
                         inner: '',
@@ -220,7 +197,6 @@
                     },
                     jp: {
                         addr: 'アド',
-                        attribute: '',
                         name: 'にじ',
                         intro: 'プロフ帐',
                         inner: '',
@@ -244,7 +220,7 @@
                 autoplay: true,
                 controls: true,
                 wrapper: '#vedio',
-                src: 'http://v.youku.com/v_show/id_XMzYzNzU4NTY1Ng==.html?spm=a2hww.11359951.m_26657.5~1~3!7~A'
+                src: ''
             })
         },
         computed: {
@@ -275,20 +251,16 @@
                 })
                 this.showProgress = true
                 const self = this
-                axios.post('/rents', formdata, {
-                    headers: {
-                        'Content-Type': 'multipart/formdata'
-                    },
-                    onUploadProgress(e) {
+                this.$api.rent.add(
+                    formdata,
+                    (e) => {
                         self.percentage = parseInt((e.loaded / e.total) * 100, 10)
                     }
-                }).then((res) => {
+                ).then((res) => {
                     this.$router.push(`/rent/${res.data.id}`)
                 }).catch((err) => {
-                    if (err.response.status === 401) {
-                        this.$router.push('/login')
-                    } else {
-                        alert('update failed, please try again')
+                    if (err.response.status !== 401) {
+                        alert('upload failed, please try again')
                         this.toSubmit = true
                         this.showProgress = false
                     }
@@ -316,7 +288,7 @@
 <style lang="scss" scoped>
     $borderColor: #dbdbdb;
 
-    .container {
+    .content-container {
         margin: 1rem auto;
         height: 100%;
         width: 1120px;

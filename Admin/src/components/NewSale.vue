@@ -1,7 +1,7 @@
 <template>
     <div>
         <my-header></my-header>
-        <div class="container">
+        <div class="content-container">
             <div class="btn">
                 <el-row>
                     <el-button type="primary" icon="el-icon-edit" circle @click="edit"
@@ -59,26 +59,13 @@
                 </el-upload>
                 <my-div class="name" v-model="info[lang].name" :editable="editable" :key="lang+'name'"></my-div>
                 <my-div class="addr" v-model="info[lang].addr" :editable="editable" :key="lang+'addr'"></my-div>
-                <div class="attribute">
-                    <div class="key">{{struct[lang].attribute}}</div>
-                    <my-div class="value" v-model="info[lang].attribute" :editable="editable"
-                            :key="lang+'attribute'"></my-div>
-                </div>
-                <div class="transport">
-                    <div class="key">{{struct[lang].transport}}</div>
-                    <my-div class="value" v-model="info[lang].transport" :editable="editable"
-                            :key="lang+'transport'"></my-div>
-                </div>
-                <div class="around">
-                    <div class="key">{{struct[lang].around}}</div>
-                    <my-div class="value" v-model="info[lang].around" :editable="editable"
-                            :key="lang+'around'"></my-div>
-                </div>
-                <div class="estate">
-                    <div class="key">{{struct[lang].estate}}</div>
-                    <my-div class="value" v-model="info[lang].estate" :editable="editable"
-                            :key="lang+'estate'"></my-div>
-                </div>
+                <template v-for="item in itemsToShow">
+                    <div :class="item">
+                        <div class="key">{{struct[lang][item]}}</div>
+                        <my-div class="value" v-model="info[lang][item]" :editable="editable"
+                                :key="lang+item"></my-div>
+                    </div>
+                </template>
                 <div>{{struct[lang].vedio}}</div>
                 <div id="vedio" v-show="vedio.url"></div>
                 <el-upload
@@ -106,15 +93,10 @@
     import { mapState } from 'vuex'
     /* eslint-disable import/extensions */
     import Chimee from 'chimee'
-    import axios from 'axios'
 
     import EditableDiv from './__partial/EditableDiv.vue'
     import Footer from './__partial/Footer.vue'
     import Header from './__partial/Header.vue'
-
-    import { axiosBaseURL } from '../../config'
-
-    axios.defaults.baseURL = axiosBaseURL
 
     let chimee = null
     export default {
@@ -126,6 +108,7 @@
         },
         data() {
             return {
+                itemsToShow: ['attribute', 'transport', 'around', 'estate'],
                 showProgress: false,
                 percentage: 100,
                 editable: false,
@@ -207,7 +190,7 @@
                 autoplay: true,
                 controls: true,
                 wrapper: '#vedio',
-                src: 'http://v.youku.com/v_show/id_XMzYzNzU4NTY1Ng==.html?spm=a2hww.11359951.m_26657.5~1~3!7~A'
+                src: ''
             })
         },
         computed: {
@@ -238,20 +221,17 @@
                 })
                 this.showProgress = true
                 const self = this
-                axios.post('/sales', formdata, {
-                    headers: {
-                        'Content-Type': 'multipart/formdata'
-                    },
-                    onUploadProgress(e) {
+                this.$api.sale.add(
+                    formdata,
+                    (e) => {
                         self.percentage = parseInt((e.loaded / e.total) * 100, 10)
                     }
-                }).then((res) => {
+                ).then((res) => {
                     this.$router.push(`/sale/${res.data.id}`)
                 }).catch((err) => {
-                    if (err.response.status === 401) {
-                        this.$router.push('/login')
-                    } else {
-                        alert('update failed, please try again')
+                    console.log('err', err)
+                    if (err.response.status !== 401) {
+                        alert('upload failed, please try again')
                         this.toSubmit = true
                         this.showProgress = false
                     }
@@ -279,7 +259,7 @@
 <style lang="scss" scoped>
     $borderColor: #dbdbdb;
 
-    .container {
+    .content-container {
         margin: 1rem auto;
         height: 100%;
         width: 1120px;

@@ -42,13 +42,7 @@
 
 <script>
     import { mapState } from 'vuex'
-    import axios from 'axios'
-
     import EditableDiv from './EditableDiv.vue'
-
-    const { axiosBaseURL } = require('../../../config/index')
-
-    axios.defaults.baseURL = axiosBaseURL
 
     export default {
         props: {
@@ -109,6 +103,10 @@
                 this.cover = file
             },
             addItem() {
+                if (!this.cover.raw) {
+                    alert('Please upload an image')
+                    return
+                }
                 const formdata = new FormData()
                 if (this.hasToUpdate.cover) {
                     formdata.append('cover', this.cover.raw)
@@ -117,17 +115,9 @@
                     formdata.append('info', JSON.stringify(this.info))
                 }
                 formdata.append('type', this.data.type)
-                axios.post('/services', formdata, {
-                    headers: {
-                        'Content-Type': 'multipart/formdata'
-                    }
-                }).then(() => {
+                this.$api.service.add(formdata).then(() => {
                     alert('Add successfully')
                     this.$emit('closeEB', true)
-                }).catch((err) => {
-                    if (err.response.status === 401) {
-                        this.$router.push('/login')
-                    }
                 })
             },
             updateItem() {
@@ -139,32 +129,19 @@
                 if (this.hasToUpdate.info) {
                     formdata.append('info', JSON.stringify(this.info))
                 }
-                axios.put(`/services/${id}`, formdata, {
-                    headers: {
-                        'Content-Type': 'multipart/formdata'
-                    }
-                }).then(() => {
+                this.$api.service.update(id, formdata).then(() => {
                     alert('Update successfully')
                     this.data.cover.url = this.cover.url
                     this.data.info = this.info
                     this.$emit('closeEB', false)
-                }).catch((err) => {
-                    if (err.response.status === 401) {
-                        this.$router.push('/login')
-                    }
                 })
             },
             deleteItem() {
                 const { id } = this.data
-                axios.delete(`/services/${id}`)
+                this.$api.service.del(id)
                     .then(() => {
                         alert('Delete successfully')
                         this.$emit('closeEB', true)
-                    })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
                     })
             }
         }

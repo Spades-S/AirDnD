@@ -37,15 +37,8 @@
 </template>
 
 <script>
-    import axios from 'axios'
 
     import Cookie from '../utils/cookie'
-
-    const { axiosBaseURL } = require('../../config/index')
-
-    axios.defaults.withCredentials = true
-    axios.defaults.baseURL = axiosBaseURL
-
 
     export default {
         props: ['isLogin'],
@@ -92,7 +85,7 @@
                     this.getVerifyCode()
                     return
                 }
-                axios.put('/user', {
+                this.$api.user.updatePSW({
                     oldpsw: option.oldpsw,
                     newpsw: option.newpsw,
                     verifycode: option.verifycode
@@ -111,16 +104,13 @@
                 })
             },
             forget() {
-                axios.post('/user/forget')
+                this.$api.user.forgetPSW()
                     .then(() => {
                         this.$notify({
                             title: 'MailBox',
                             message: 'Reset successfully, Please check your mailbox',
                             type: 'success'
                         });
-                    })
-                    .catch((err) => {
-                        console.log(err)
                     })
             },
             login(e) {
@@ -135,7 +125,7 @@
                     this.addBuzz(e.target, '验证码为空', true)
                     return
                 }
-                axios.post('/user', {
+                this.$api.user.login({
                     username: option.username,
                     psw: option.psw,
                     verifycode: option.verifycode
@@ -145,19 +135,15 @@
                     }
                 }).catch((err) => {
                     if (err.response.status === 401) {
-                        console.log(err.response)
                         this.addBuzz(e.target, err.response.data.error, true)
                         this.getVerifyCode()
                     }
                 })
             },
             getVerifyCode() {
-                axios.get('/verifycode')
+                this.$api.verifycode.fetch()
                     .then((res) => {
                         this.verifyCode = res.data
-                    })
-                    .catch((err) => {
-                        console.log(err.response)
                     })
             },
             addBuzz(ele, msg, isLogin, isErr = true) {

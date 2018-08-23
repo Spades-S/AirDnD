@@ -1,7 +1,7 @@
 <template>
-    <div>
+    <div class="outer-wrapper">
         <my-header></my-header>
-        <div class="container" :class="{hasEditBox: isEBActive}">
+        <div class="content-container" :class="{hasEditBox: isEBActive}">
             <div class="btn">
                 <el-row>
                     <el-button type="primary" icon="el-icon-edit" circle @click="edit"
@@ -39,18 +39,12 @@
 </template>
 <script>
     import { mapState } from 'vuex'
-    import axios from 'axios'
 
     import Card from './__partial/Card.vue'
     import EditableDiv from './__partial/EditableDiv.vue'
     import Footer from './__partial/Footer.vue'
     import Header from './__partial/Header.vue'
-
-    import { axiosBaseURL } from '../../config'
-
     import AboutItemEB from './__partial/ServiceItemEditBox.vue'
-
-    axios.defaults.baseURL = axiosBaseURL
 
 
     export default {
@@ -104,7 +98,6 @@
             info: {
                 deep: true,
                 handler() {
-                    console.log()
                     if (this.editable) {
                         this.toSubmit = true
                     }
@@ -136,7 +129,7 @@
                 this.editable = false
                 const formdata = new FormData()
                 formdata.append('info', JSON.stringify(this.info))
-                axios.put('/about', formdata)
+                this.$api.about.update(formdata)
                     .then((res) => {
                         if (res.status === 200) {
                             this.toSubmit = false
@@ -144,34 +137,22 @@
                         }
                     })
                     .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        } else {
+                        if (err.response.status !== 401) {
                             alert('Update failed, please try again')
                         }
                     })
             },
             getAbout() {
-                axios.get('/about')
+                this.$api.about.fetch()
                     .then((res) => {
                         if (res.data.length > 0) {
                             this.info = res.data[0].info
                         }
                     })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
-                    })
 
-                axios.get('/services/about')
+                this.$api.service.fetch('about')
                     .then((res) => {
                         this.services = res.data
-                    })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
                     })
             },
             showEB(data) {
@@ -204,12 +185,15 @@
 <style lang="scss" scoped>
     $borderColor: #dbdbdb;
 
-    .container {
+    .outer-wrapper {
         height: 100%;
+    }
+
+    .content-container {
         margin: 0 auto 1rem auto;
-        min-height: calc(100% - 375px);
-        width: 90%;
+        min-height: calc(100% - 230px);
         max-width: 1120px;
+        width: 90%;
 
         &.hasEditBox {
             height: 200px;

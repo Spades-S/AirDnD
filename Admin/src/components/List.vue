@@ -1,9 +1,9 @@
 <!-- Created by Spades<spadesge@gmail.com> on 18/05/23-->
 
 <template>
-    <div>
+    <div class="outer-wrapper">
         <my-header></my-header>
-        <div class="container">
+        <div class="content-container">
             <div class="btn">
                 <el-row>
                     <el-button type="success" icon="el-icon-plus" circle @click="add"></el-button>
@@ -36,15 +36,9 @@
 </template>
 <script>
     import { mapState } from 'vuex'
-    import axios from 'axios'
     import Card from './__partial/Card.vue'
     import Footer from './__partial/Footer.vue'
     import Heaader from './__partial/Header.vue'
-
-    import { axiosBaseURL } from '../../config'
-
-    axios.defaults.baseURL = axiosBaseURL
-
 
     export default {
         name: 'Index',
@@ -109,40 +103,32 @@
                 this.$store.dispatch('langChange', lang)
             },
             getResByPage(page) {
-                axios.get(`/list/${this.$route.params.type}/${page}`)
+                this.$api.list.getPageContent(this.$route.params.type, page)
                     .then((res) => {
                         this.currentPage = page
                         this.res = res.data
                     })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
-                    })
             },
             getTotalNum() {
-                axios.get(`/list/total/${this.$route.params.type}`)
+                this.$api.list.countTotalNum(this.$route.params.type)
                     .then((res) => {
                         this.total = res.data.num
                     })
-                    .catch((err) => {
-                        if (err.response.status === 401) {
-                            this.$router.push('/login')
-                        }
-                    })
             },
             pageChange(page) {
-                console.log('page change')
                 this.getResByPage(page)
             }
         }
     }
 </script>
 <style lang="scss" scoped>
+    .outer-wrapper {
+        height: 100%;
+    }
 
-
-    .container {
+    .content-container {
         width: 900px;
+        min-height: calc(100% - 230px);
         margin: 0 auto;
         overflow: hidden;
         .btn {
